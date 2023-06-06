@@ -1,0 +1,6 @@
+# Ignore build output
+build
+
+# Ignore User Settings
+CMakeUserPresets.json
+
