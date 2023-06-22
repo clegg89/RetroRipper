@@ -5,7 +5,7 @@ set(STM32_G0_TYPES
 	G031xx G041xx G051xx G061xx G071xx G081xx G0B1xx G0C1xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY G0
 	TYPES ${STM32_G0_TYPES}
 )

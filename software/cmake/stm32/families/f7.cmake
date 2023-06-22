@@ -24,13 +24,13 @@ set(STM32_F7_DP_TYPES
 	F769xx F779xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F7
 	SUBFAMILY SP
 	TYPES ${STM32_F7_SP_TYPES}
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F7
 	SUBFAMILY DP
 	TYPES ${STM32_F7_DP_TYPES}

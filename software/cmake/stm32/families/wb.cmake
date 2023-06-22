@@ -7,7 +7,7 @@ set(STM32_WB_TYPES
 	WB1Mxx WB5Mxx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY WB
 	SUBFAMILY M4
 	TYPES ${STM32_WB_TYPES}

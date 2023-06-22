@@ -23,7 +23,7 @@
 # or not an FPU is available.
 #
 # The Type library typically adds a preprocessor definition for the type,
-# (i.e. STM32F103xx) but does sometimes add additional compiler/linker
+# (i.e. STM32F103xB) but does sometimes add additional compiler/linker
 # flags.
 
 
@@ -42,7 +42,7 @@
 # definitions. This field will append to the family (i.e. STM32::H7::M7)
 # but will still define the family/type in the definitions section.
 # TYPES - Full list of supported types
-function(stm32_create_family_targets)
+function(_stm32_create_family_targets)
 	set(ARG_OPTIONS "")
 	set(ARG_SINGLE FAMILY SUBFAMILY)
 	set(ARG_MULTIPLE TYPES)
@@ -92,6 +92,7 @@ function(stm32_create_family_targets)
 endfunction()
 
 # Currently missing: c0 h5 wba
+# TODO change to components of find package
 set(FAMILIES
 	# Mainstream
 	f0 g0 f1 f3 g4
@@ -138,3 +139,5 @@ if(NOT (TARGET STM32::Nano::FloatScan))
         $<$<C_COMPILER_ID:GNU>:-Wl,--undefined,_scanf_float>
     )
 endif()
+
+# TODO actually use find_package stuff

@@ -9,7 +9,7 @@ set(STM32_L1_TYPES
 	L162xC L162xCA L162xD L162xDX L162xE
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY L1
 	TYPES ${STM32_L1_TYPES}
 )

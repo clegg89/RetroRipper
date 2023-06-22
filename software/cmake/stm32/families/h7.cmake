@@ -34,7 +34,7 @@ H745xx H755xx
 H747xx H757xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY H7
 	SUBFAMILY M7
 	TYPES ${STM32_H7_TYPES} # All H7's have an M7
@@ -55,7 +55,7 @@ target_compile_definitions(STM32::H7::M7 INTERFACE
 	CORE_CM7
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY H7
 	SUBFAMILY M4
 	TYPES ${STM32_H7_DUAL_CORE_TYPES} # Only multi-core variants

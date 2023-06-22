@@ -13,7 +13,7 @@ set(STM32_WL_DUAL_CORE_TYPES
 )
 
 # All variants have a M4
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY WL
 	SUBFAMILY M4
 	TYPES ${STM32_WL_TYPES}
@@ -29,7 +29,7 @@ target_link_options(STM32::WL::M4 INTERFACE
 )
 
 # Mult-core variants also have an M0+
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY WL
 	SUBFAMILY M0PLUS
 	TYPES ${STM32_WL_DUAL_CORE_TYPES}

@@ -9,7 +9,7 @@ set(STM32_L0_TYPES
 	L053xx L063xx L073xx L083xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY L0
 	TYPES ${STM32_L0_TYPES}
 )

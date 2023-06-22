@@ -26,7 +26,7 @@ set(STM32_F4_TYPES
 	F413xx F423xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F4
 	TYPES ${STM32_F4_TYPES})
 

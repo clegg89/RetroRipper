@@ -9,7 +9,7 @@ set(STM32_U5_TYPES
 	U599xx U5A9xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY
 U5
 	TYPES

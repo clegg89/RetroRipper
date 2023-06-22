@@ -5,7 +5,7 @@ set(STM32_F2_TYPES
 	F207xx F217xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F2
 	TYPES ${STM32_F2_TYPES}
 )

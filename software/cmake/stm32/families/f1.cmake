@@ -11,7 +11,7 @@ set(STM32_F1_TYPES
 	F105xC F107xC
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F1
 	TYPES ${STM32_F1_TYPES}
 )

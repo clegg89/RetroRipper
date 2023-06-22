@@ -29,7 +29,7 @@ set(STM32_L4_TYPES
 	L4Q5xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY L4
 	TYEPS ${STM32_L4_TYPES}
 )

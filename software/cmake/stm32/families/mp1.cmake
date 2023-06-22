@@ -7,7 +7,7 @@ set(STM32_MP1_TYPES
 	MP157Axx MP157Cxx MP157Dxx MP157Fxx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY MP1
 	SUBFAMILY M4
 	TYPES ${STM32_MP1_TYPES}

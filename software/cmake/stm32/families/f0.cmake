@@ -9,7 +9,7 @@ set(STM32_F0_TYPES
 	F048xx F058xx F078xx F038xx F098xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY F0
 	TYPES ${STM32_F0_TYPES}
 )

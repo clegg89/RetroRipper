@@ -13,7 +13,7 @@ set(STM32_F3_TYPES
 	F318xx F328xx F358xx F378xx F398xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY f3
 	TYPES ${STM32_F3_TYPES}
 )

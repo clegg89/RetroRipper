@@ -7,7 +7,7 @@ set(STM32_G4_TYPES
 	G474xx G484xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY G4
 	TYPES ${STM32_G4_TYPES}
 )

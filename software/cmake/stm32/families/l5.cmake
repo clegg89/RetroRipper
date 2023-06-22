@@ -5,7 +5,7 @@ set(STM32_L5_TYPES
 	L562xx
 )
 
-stm32_create_family_targets(
+_stm32_create_family_targets(
 	FAMILY L5
 	TYPES ${STM32_L5_TYPES}
 )
