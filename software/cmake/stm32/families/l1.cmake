@@ -1,0 +1,22 @@
+set(STM32_L1_TYPES 
+	# STM32L100 Value Line
+	L100xB L100xBA L100xC
+	# STM32L151
+	L151xB L151xBA L151xC L151xCA L151xD L151xDX L151xE
+	# STM32152
+	L152xB L152xBA L152xC L152xCA L152xD L152xDX L152xE
+	# STM32L162
+	L162xC L162xCA L162xD L162xDX L162xE
+)
+
+stm32_create_family_targets(
+	FAMILY L1
+	TYPES ${STM32_L1_TYPES}
+)
+
+target_compile_options(STM32::L1 INTERFACE
+	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m3>
+)
+target_link_options(STM32::L1 INTERFACE
+	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m3>
+)
