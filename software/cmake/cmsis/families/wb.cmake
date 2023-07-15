@@ -1,0 +1,26 @@
+set(STM32_WB_SUBFAMILIES
+	# The only subfamily we support is the M4
+	M4
+)
+
+set(STM32_WB_SUBFAMILY_PREFIX "CORE_")
+
+set(STM32_WB_M4_TYPES 
+	# Standard Lines
+	WB15xx WB35xx WB55xx
+	# Value Lines
+	WB10xx WB30xx WB50xx
+	# Module Lines
+	WB1Mxx WB5Mxx
+)
+
+set(STM32_WB_TYPES ${STM32_WB_M4_TYPES})
+
+set(STM32_WB15xx_DEVICES "WB15..")
+set(STM32_WB35xx_DEVICES "WB35..")
+set(STM32_WB55xx_DEVICES "WB55..")
+set(STM32_WB10xx_DEVICES "WB10..")
+set(STM32_WB30xx_DEVICES "WB30..")
+set(STM32_WB50xx_DEVICES "WB50..")
+set(STM32_WB1Mxx_DEVICES "WB1M..")
+set(STM32_WB5Mxx_DEVICES "WB5M..")

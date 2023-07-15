@@ -1,0 +1,18 @@
+set(STM32_G4_TYPES 
+	# STM32G4x1 Access Line
+	G431xx G441xx G471xx G491xx G4A1xx
+	# STM32G4x3 Performance Line
+	G473xx G483xx
+	# STM32G4x4 Hi-resolution line
+	G474xx G484xx
+)
+
+set(STM32_G431xx_DEVICES "G431..")
+set(STM32_G441xx_DEVICES "G441..")
+set(STM32_G471xx_DEVICES "G471..")
+set(STM32_G491xx_DEVICES "G491..")
+set(STM32_G4A1xx_DEVICES "G4A1..")
+set(STM32_G473xx_DEVICES "G473..")
+set(STM32_G483xx_DEVICES "G483..")
+set(STM32_G474xx_DEVICES "G474..")
+set(STM32_G484xx_DEVICES "G484..")

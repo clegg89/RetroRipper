@@ -1,0 +1,50 @@
+set(STM32_F7_SUBFAMILIES
+	# Single-Precision FPU
+	SP
+	# Double-Precision FPU
+	DP
+)
+
+set(STM32_F7_SP_TYPES
+	# Value Lines
+	## STM32F7x0
+	F730xx F750xx
+	# Foundation Lines
+	## STM32F7x2
+	F722xx F732xx
+	## STM32F7x3
+	F723xx F733xx
+	# Advanced Lines (SP)
+	## STM32F7x5 (SP)
+	F745xx F746xx
+	## STM32F7x6
+	F756xx
+)
+
+set(STM32_F7_DP_TYPES
+	# Advanced Lines (DP)
+	## STM32F7x5 (DP)
+	F765xx
+	## STM32F7x7
+	F767xx F777xx
+	## STM32F7x9
+	F769xx F779xx
+)
+
+set(STM32_F7_TYPES ${STM32_F7_SP_TYPES} ${STM32_F7_DP_TYPES})
+list(REMOVE_DUPLICATES STM32_F7_TYPES)
+
+set(STM32_F730xx_DEVICES "F730..")
+set(STM32_F750xx_DEVICES "F750..")
+set(STM32_F722xx_DEVICES "F722..")
+set(STM32_F732xx_DEVICES "F732..")
+set(STM32_F723xx_DEVICES "F723..")
+set(STM32_F733xx_DEVICES "F733..")
+set(STM32_F745xx_DEVICES "F745..")
+set(STM32_F746xx_DEVICES "F746..")
+set(STM32_F756xx_DEVICES "F756..")
+set(STM32_F765xx_DEVICES "F765..")
+set(STM32_F767xx_DEVICES "F767..")
+set(STM32_F777xx_DEVICES "F777..")
+set(STM32_F769xx_DEVICES "F769..")
+set(STM32_F779xx_DEVICES "F77[89]..")

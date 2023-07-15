@@ -14,17 +14,13 @@
 #    * Device - The full microcontroller part (F103RB). This simply
 #      adds the information on the pin count and memory to the Type.
 #
-# We define interface libraries for both the Family and the Type.
-# No library is needed at this level for the Device, as that is the
-# domain of the CMSIS and HAL.
+# We define interface libraries for both the Family only. No libraries
+# are needed at this level for the Type or the Device, as these are
+# only meaningful for higher layers (i.e. CMSIS or the application).
 #
 # The Family library is mainly concerned with compiler and linker
 # flags, as this determines what CPU is being targetted and whether
 # or not an FPU is available.
-#
-# The Type library typically adds a preprocessor definition for the type,
-# (i.e. STM32F103xB) but does sometimes add additional compiler/linker
-# flags.
 
 
 ## Create interface libraries for a given STM32 series
@@ -45,7 +41,7 @@
 function(_stm32_create_family_targets)
 	set(ARG_OPTIONS "")
 	set(ARG_SINGLE FAMILY SUBFAMILY)
-	set(ARG_MULTIPLE TYPES)
+	set(ARG_MULTIPLE "")
 	cmake_parse_arguments(ARG "${ARG_OPTIONS}" "${ARG_SINGLE}" "${ARG_MULTIPLE}" ${ARGN})
 
 	if(ARG_SUBFAMILY)
@@ -79,16 +75,6 @@ function(_stm32_create_family_targets)
 			STM32${ARG_FAMILY}
 		)
 	endif()
-
-	foreach(TYPE ${ARG_TYPES})
-		if(NOT (TARGET STM32::${TYPE}${SUBFAMILY_C}))
-			add_library(STM32::${TYPE}${SUBFAMILY_C} INTERFACE IMPORTED)
-			target_link_libraries(STM32::${TYPE}${SUBFAMILY_C} INTERFACE STM32::${FAMILY})
-			target_compile_definitions(STM32::${TYPE}${SUBFAMILY_C} INTERFACE
-				STM32${TYPE}
-			)
-		endif()
-	endforeach()
 endfunction()
 
 # Currently missing: c0 h5 wba
@@ -110,7 +96,7 @@ foreach(FAMILY ${FAMILIES})
 		PATHS "${CMAKE_CURRENT_LIST_DIR}/stm32/families"
 		NO_CMAKE_PATH
 		REQUIRED
-		)
+	)
 	include("${FAMILY_INCLUDE}")
 endforeach()
 
