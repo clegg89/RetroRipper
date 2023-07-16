@@ -1,26 +1,37 @@
 # Adapted from https://github.com/ObKo/stm32-cmake
-# Generate imported libraries for all supported STM32 chips and
-# provide some utility functions.
-#
-# For a given part, i.e. the STM32F103RB we can break it down into:
-#    * Family - What ST calls the "Series" (F1 in this example)
-#    * Type - A subset of the family grouped by common functionality.
-#      This directly corresponds to the macro definitions of each family's
-#      HAL layer, a table of which can be found on the family's STM32Cube
-#      "Getting Started" guide. They are also defined in the CMSIS Device
-#      master include (i.e. stm32f1xx.h). In terms of ST nomenclature, it
-#      most closely aligns to what ST calls "Product Line", though it is
-#      not an exact match. For our example, the type is F103xB.
-#    * Device - The full microcontroller part (F103RB). This simply
-#      adds the information on the pin count and memory to the Type.
-#
-# We define interface libraries for both the Family only. No libraries
-# are needed at this level for the Type or the Device, as these are
-# only meaningful for higher layers (i.e. CMSIS or the application).
-#
-# The Family library is mainly concerned with compiler and linker
-# flags, as this determines what CPU is being targetted and whether
-# or not an FPU is available.
+#[=======================================================================[.md:
+FindSTM32
+=========
+
+Generate imported libraries for one or more families of the STM32 product
+line from ST Microelectronics.
+
+Components
+----------
+The caller may provide one or more families to generate libraries for.
+Components should be in the format `${FAMILY}` where family is one of
+the valid supported STM32 families.
+
+If no components are specified, imported libraries for all the supported
+families are created.
+
+Imported Targets
+----------------
+Each family that is requested will have a single imported library of the
+format `STM32::${FAMILY}`. The target does contain any source code, but
+instead adds compiler and linker options (including predefines) to
+properly compile source code for the chosen family.
+
+Some families have subfamilies, for example: multi-core product lines and
+product lines which come with varying FPU support. In these cases, the
+targets created are `STM32::${FAMILY}::${SUBFAMILY}.
+
+Usage
+-----
+In general this package is not meant to be used or linked to directly.
+Instead it is meant to be used by other packages (i.e. FindCMSIS) as an
+intermediate step to provide proper compiler/linker options.
+#]=======================================================================]
 
 
 ## Create interface libraries for a given STM32 series
@@ -78,8 +89,7 @@ function(_stm32_create_family_targets)
 endfunction()
 
 # Currently missing: c0 h5 wba
-# TODO change to components of find package
-set(FAMILIES
+set(STM32_SUPPORTED_FAMILIES
 	# Mainstream
 	f0 g0 f1 f3 g4
 	# Ultra-low-power
@@ -90,13 +100,29 @@ set(FAMILIES
 	wl wb
 )
 
-foreach(FAMILY ${FAMILIES})
+if(NOT STM32_FIND_COMPONENTS)
+	set(STM32_FIND_COMPONENTS ${STM32_SUPPORTED_FAMILIES})
+endif()
+
+list(REMOVE_DUPLICATES STM32_FIND_COMPONENTS)
+
+message(STATUS "Search for STM32 families: ${STM32_FIND_COMPONENTS}")
+
+foreach(FAMILY ${STM32_FIND_COMPONENTS})
+	string(TOLOWER ${FAMILY} FAMILY)
+
+	if(NOT (${FAMILY} IN_LIST STM32_SUPPORTED_FAMILIES))
+		message(WARNING "Invalid/unsupported STM32 FAMILY ${FAMILY}")
+		continue()
+	endif()
+
 	find_file(FAMILY_INCLUDE
 		"${FAMILY}.cmake"
 		PATHS "${CMAKE_CURRENT_LIST_DIR}/stm32/families"
 		NO_CMAKE_PATH
 		REQUIRED
 	)
+
 	include("${FAMILY_INCLUDE}")
 endforeach()
 
@@ -126,4 +152,7 @@ if(NOT (TARGET STM32::Nano::FloatScan))
     )
 endif()
 
-# TODO actually use find_package stuff
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(STM32
+	HANDLE_COMPONENTS
+)

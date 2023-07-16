@@ -1,56 +1,88 @@
 # Adapted from https://github.com/ObKo/stm32-cmake
-# Generate imported CMSIS libraries for requested STM32
-# families and device types. (Only STM32 is supported at
-# this time, though future vendors could be added)
-#
-# The CMSIS family libraries provide the proper include paths
-# for both the CMSIS Core and Device library. They will also
-# link to the corresponding STM32 family library.
-#
-# The CMSIS type libraries simply add the appropriate
-# preprocessor definiton, which will result in the proper Device
-# Header File (<device>.h) being included. The source files
-# included by the original cmake files are not included here,
-# as these files were meant to be used as templates, not common
-# source files.
-# 
-# The "Device" library added by the original are not included
-# here, as each application is responsible for providing it's
-# own linker script (see note below).
-#
-# The RTOS components/libraries included in the original are also
-# not present, as they relied on files from STM32CubeXX and used
-# the FreeRTOS files instead of the actual CMSIS files.
-#
-# Users of the library can specify components in the following ways:
-#   * No components - All STM32 families and types are generated
-#   * STM32 Family - All types of the family are generated
-#   * STM32 Device - The family and type of the device are generated
-#
-# Multiple devices/families can be specified, and mixed and matched.
-# STM32 types are not supported, only the full device name or the
-# entire family are supported components.
-#
-# Note that each application (i.e. executable) is responsible for
-# including their own startup files, system configuration files,
-# and linker script, as CMSIS/STM32 only provide templates for these
-# files. See https://arm-software.github.io/CMSIS_5/Core/html/using_pg.html
-# for more details.
+#[=======================================================================[.md:
+FindCMSIS
+=========
+
+Generate imported libraries for CMSIS for requested families/devices. At
+this time only STM32 famlies/devices are supported.
+
+In the context of STM32, a Family is equivalent to what ST calls a "product
+line." Examples include STM32H7, STM32F1, etc.
+
+Devices are the full device name, minus the package component, for example
+the STM32F103RB.
+
+ST's implementation of CMSIS adds a concept of 'types.' This is generally
+a grouping of subsets (i.e. the series, Flash/RAM size, etc.) within a
+given family. These types are shown as preprocessor definitions within
+the CMSIS Device Header File (<device>.h).
+
+Components
+----------
+The package accepts any valid family and/or device as a component.
+
+Families should be given in the form of `STM32${FAMILY}`, and will
+generate imported libraries for all valid types of the family.
+
+Devices should be given in the form of `ST32${DEVICE}`, and will generate
+only the imported libraries to support that device's type.
+
+If no components are requested, all supported families/types will be
+generated.
+
+Imported Targets
+----------------
+Regardless of components requested, the package will create the
+`CMSIS::STM32::CORE` target, which contains the include paths for the
+version of CMSIS Core currently supported by ST.
+
+Any additional families/types will get a family library:
+`CMSIS::STM32::${FAMILY}`
+
+and a type library:
+`CMSIS::STM32::${TYPE}`
+
+The type library links to the family library, which links to the core
+library. The family library also links to the `FindSTM32` imported family
+library.
+
+For families with subfamilies, the subfamily will be added to the end of
+both the family and type library names.
+
+Utility Functions
+-----------------
+The library provides the following utility functions:
+	* cmsis_stm32_get_family_types - Retrieve all valid types for a given
+	  family.
+	* cmsis_stm32_get_device_type - Retrive the type associated with a
+	  device.
+	* cmsis_stm32_get_type_subfamlies - Retrieve the subfamilies supported
+	  by a given type.
+
+Usage
+-----
+The Type library is intended to be linked with applications targets. Note
+that any executable target is responsible for including their own startup
+file, system configuration file, and linker script, as CMSIS/ST only
+provide templates for these files.
+See [the CMSIS documentation](https://arm-software.github.io/CMSIS_5/Core/html/using_pg.html)
+for more information.
+#]=======================================================================]
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmsis/devices.cmake")
 
 foreach(FAMILY ${CMSIS_SUPPORTED_FAMILIES})
 	string(TOUPPER "${FAMILY}" FAMILY_U)
-	list(APPEND SUPPORTED_FAMILIES_LONG_NAME "STM32${FAMILY_U}")
+	list(APPEND CMSIS_SUPPORTED_FAMILIES_LONG_NAME "STM32${FAMILY_U}")
 endforeach()
 
 if(NOT CMSIS_FIND_COMPONENTS)
-    set(CMSIS_FIND_COMPONENTS ${SUPPORTED_FAMILIES_LONG_NAME})
+    set(CMSIS_FIND_COMPONENTS ${CMSIS_SUPPORTED_FAMILIES_LONG_NAME})
 endif()
 
 list(REMOVE_DUPLICATES CMSIS_FIND_COMPONENTS)
 
-message(STATUS "Search for CMSIS families: ${CMSIS_FIND_COMPONENTS_FAMILIES}")
+message(STATUS "Search for CMSIS families: ${CMSIS_FIND_COMPONENTS}")
 
 # CMSIS::STM32::CORE target is always created/required
 # TODO: Versioning? use actual CMSIS_5 Core?
@@ -83,12 +115,13 @@ function(_cmsis_create_targets)
 	endif()
 
 	if(ARG_SUBFAMILY)
-		cmsis_stm32_get_subfamily_definitions(${ARG_FAMILY} ${ARG_SUBFAMILY} SUBFAMILY_DEFINITIONS)
+		_cmsis_stm32_get_subfamily_definitions(${ARG_FAMILY} ${ARG_SUBFAMILY} SUBFAMILY_DEFINITIONS)
 		set(SUBFAMILY_C "::${ARG_SUBFAMILY}")
 	else()
 		set(SUBFAMILY_C "")
 	endif()
 
+	# Create family library if it does not already exist
 	if(NOT (TARGET CMSIS::STM32::${FAMILY})${SUBFAMILY_C})
 		message(TRACE "FindCMSIS: creating library CMSIS::STM32::${FAMILY}${SUBFAMILY_C}")
 		add_library(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE IMPORTED)
@@ -100,6 +133,8 @@ function(_cmsis_create_targets)
 			target_compile_definitions(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE ${SUBFAMILY_DEFINITIONS})
 		endif()
 	endif()
+
+	# Create type library
 	if(NOT (TARGET CMSIS::STM32::${TYPE}::${SUBFAMILY}))
 		message(TRACE "FindCMSIS: creating library CMSIS::STM32::${TYPE}${SUBFAMILY_C}")
 		add_library(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE IMPORTED)
@@ -108,7 +143,7 @@ function(_cmsis_create_targets)
 	endif()
 endfunction()
 
-foreach(COMP ${CMSIS_FIND_COMPONENTS_FAMILIES})
+foreach(COMP ${CMSIS_FIND_COMPONENTS})
     string(TOLOWER ${COMP} COMP_L)
     string(TOUPPER ${COMP} COMP)
 
@@ -168,6 +203,5 @@ endforeach()
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CMSIS
     REQUIRED_VARS CMSIS_INCLUDE_DIRS
-    FOUND_VAR CMSIS_FOUND
     HANDLE_COMPONENTS
 )

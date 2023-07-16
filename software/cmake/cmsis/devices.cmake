@@ -19,6 +19,7 @@ foreach(FAMILY ${CMSIS_SUPPORTED_FAMILIES})
 	include("${FAMILY_INCLUDE}")
 endforeach()
 
+## Given a family FAMILY, output the supported types in TYPES
 function(cmsis_stm32_get_family_types FAMILY TYPES)
 	string(TOUPPER ${FAMILY} FAMILY)
 
@@ -29,6 +30,7 @@ function(cmsis_stm32_get_family_types FAMILY TYPES)
 	set(${TYPES} ${STM32_${FAMILY}_TYPES} PARENT_SCOPE)
 endfunction()
 
+## Given a type TYPE, output all supported subfamilies (if any) in SUBFAMILIES
 function(cmsis_stm32_get_type_subfamilies TYPE SUBFAMILIES)
 	string(TOUPPER ${TYPE} TYPE)
     string(REGEX MATCH "^[FGHLMUW]P?[0-9BL]" FAMILY ${TYPE})
@@ -48,7 +50,8 @@ function(cmsis_stm32_get_type_subfamilies TYPE SUBFAMILIES)
 	endif()
 endfunction()
 
-function(cmsis_stm32_get_subfamily_definitions FAMILY SUBFAMILY DEFINITIONS)
+## Provides preprocessor definitions for a family's subfamily
+function(_cmsis_stm32_get_subfamily_definitions FAMILY SUBFAMILY DEFINITIONS)
 	string(TOUPPER ${FAMILY} FAMILY)
 	string(TOUPPER ${SUBFAMILY} SUBFAMILY)
 
@@ -61,6 +64,7 @@ function(cmsis_stm32_get_subfamily_definitions FAMILY SUBFAMILY DEFINITIONS)
 	endif()
 endfunction()
 
+## Given a device DEVICE, output the device's type to TYPE
 function(cmsis_stm32_get_device_type DEVICE TYPE)
 	string(TOUPPER ${DEVICE} DEVICE)
     string(REGEX MATCH "^[FGHLMUW]P?[0-9BL]" FAMILY ${DEVICE})
