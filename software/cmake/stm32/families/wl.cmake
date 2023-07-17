@@ -1,27 +1,24 @@
-_stm32_create_family_targets(
-	FAMILY WL
-	SUBFAMILY M4
+set(STM32_WL_SUBFAMILIES
+	# All H7's have an M4
+	M4
+	# Dual-core variants also have an M0PLUS
+	M0PLUS
 )
 
-_stm32_create_family_targets(
-	FAMILY WL
-	SUBFAMILY M0PLUS
-)
-
-target_compile_options(STM32::WL::M4 INTERFACE 
+set(STM32_WL_M4_COMPILE_OPTIONS
 	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m4>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=soft>
 )
-target_link_options(STM32::WL::M4 INTERFACE 
+set(STM32_WL_M4_LINK_OPTIONS
 	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m4>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=soft>
 )
 
-target_compile_options(STM32::WL::M0PLUS INTERFACE 
+set(STM32_WL_M0PLUS_COMPILE_OPTIONS
 	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m0plus>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=soft>
 )
-target_link_options(STM32::WL::M0PLUS INTERFACE 
+set(STM32_WL_M0PLUS_LINK_OPTIONS
 	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m0plus>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=soft>
 )

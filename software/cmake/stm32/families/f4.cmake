@@ -1,11 +1,10 @@
-_stm32_create_family_targets(FAMILY F4)
-
-target_compile_options(STM32::F4 INTERFACE
+set(STM32_F4_COMPILE_OPTIONS
     $<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m4>
 	$<$<C_COMPILER_ID:GNU>:-mfpu=fpv4-sp-d16>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=hard>
 )
-target_link_options(STM32::F4 INTERFACE
+
+set(STM32_F4_LINK_OPTIONS
 	$<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m4>
 	$<$<C_COMPILER_ID:GNU>:-mfpu=fpv4-sp-d16>
 	$<$<C_COMPILER_ID:GNU>:-mfloat-abi=hard>

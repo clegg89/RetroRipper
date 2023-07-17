@@ -71,13 +71,8 @@ for more information.
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmsis/devices.cmake")
 
-foreach(FAMILY ${CMSIS_SUPPORTED_FAMILIES})
-	string(TOUPPER "${FAMILY}" FAMILY_U)
-	list(APPEND CMSIS_SUPPORTED_FAMILIES_LONG_NAME "STM32${FAMILY_U}")
-endforeach()
-
 if(NOT CMSIS_FIND_COMPONENTS)
-    set(CMSIS_FIND_COMPONENTS ${CMSIS_SUPPORTED_FAMILIES_LONG_NAME})
+    set(CMSIS_FIND_COMPONENTS ${STM32_SUPPORTED_FAMILIES_LONG_NAMES})
 endif()
 
 list(REMOVE_DUPLICATES CMSIS_FIND_COMPONENTS)
@@ -103,45 +98,6 @@ if(NOT (TARGET CMSIS::STM32::CORE))
 	add_library(CMSIS::STM32::CORE INTERFACE IMPORTED)
 	target_include_directories(CMSIS::STM32::CORE INTERFACE "${CMSIS_CORE_PATH}/Include")
 endif()
-
-function(_cmsis_create_targets)
-	set(ARG_OPTIONS "")
-	set(ARG_SINGLE FAMILY TYPE SUBFAMILY)
-	set(ARG_MULTIPLE "")
-	cmake_parse_arguments(ARG "${ARG_OPTIONS}" "${ARG_SINGLE}" "${ARG_MULTIPLE}" ${ARGN})
-
-	if(NOT ARG_FAMILY OR NOT ARG_TYPE)
-		message(FATAL_ERROR "FAMILY and TYPE arguments are required")
-	endif()
-
-	if(ARG_SUBFAMILY)
-		_cmsis_stm32_get_subfamily_definitions(${ARG_FAMILY} ${ARG_SUBFAMILY} SUBFAMILY_DEFINITIONS)
-		set(SUBFAMILY_C "::${ARG_SUBFAMILY}")
-	else()
-		set(SUBFAMILY_C "")
-	endif()
-
-	# Create family library if it does not already exist
-	if(NOT (TARGET CMSIS::STM32::${FAMILY})${SUBFAMILY_C})
-		message(TRACE "FindCMSIS: creating library CMSIS::STM32::${FAMILY}${SUBFAMILY_C}")
-		add_library(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE IMPORTED)
-		target_link_libraries(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE
-			STM32::${FAMILY}${SUBFAMILY_C}
-			CMSIS::STM32::CORE)
-		target_include_directories(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE "${CMSIS_${FAMILY}_PATH}/Include")
-		if(SUBFAMILY_DEFINITIONS)
-			target_compile_definitions(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE ${SUBFAMILY_DEFINITIONS})
-		endif()
-	endif()
-
-	# Create type library
-	if(NOT (TARGET CMSIS::STM32::${TYPE}::${SUBFAMILY}))
-		message(TRACE "FindCMSIS: creating library CMSIS::STM32::${TYPE}${SUBFAMILY_C}")
-		add_library(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE IMPORTED)
-		target_link_libraries(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE CMSIS::STM32::${FAMILY}${SUBFAMILY_C})
-		target_compile_definitions(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE STM32${TYPE})
-	endif()
-endfunction()
 
 foreach(COMP ${CMSIS_FIND_COMPONENTS})
     string(TOLOWER ${COMP} COMP_L)
@@ -188,14 +144,37 @@ foreach(COMP ${CMSIS_FIND_COMPONENTS})
 
 	foreach(TYPE ${STM_TYPES})
 		cmsis_stm32_get_type_subfamilies(${TYPE} SUBFAMILIES)
+		foreach(SUBFAMILY ${SUBFAMILIES})
+			if(${SUBFAMILY} STREQUAL "")
+				set(SUBFAMILY_C "")
+			else()
+			 	string(TOUPPER ${SUBFMAILY} SUBFAMILY)
+				set(SUBFAMILY_C "::${SUBFAMILY}")
 
-		if(SUBFAMILIES)
-			foreach(SUBFAMILY ${SUBFAMILIES})
-				_cmsis_create_targets(FAMILY ${FAMILY} TYPE ${TYPE} SUBFAMILY ${SUBFAMILY})
-			endforeach()
-		else()
-			_cmsis_create_targets(FAMILY ${FAMILY} TYPE ${TYPE})
-		endif()
+				_cmsis_stm32_get_subfamily_definitions(${FAMILY} ${SUBFAMILY} SUBFAMILY_DEFINITIONS)
+			endif()
+
+			# Create family library if it does not already exist
+			if(NOT (TARGET CMSIS::STM32::${FAMILY})${SUBFAMILY_C})
+				message(TRACE "FindCMSIS: creating library CMSIS::STM32::${FAMILY}${SUBFAMILY_C}")
+				add_library(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE IMPORTED)
+				target_link_libraries(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE
+					STM32::${FAMILY}${SUBFAMILY_C}
+					CMSIS::STM32::CORE)
+				target_include_directories(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE "${CMSIS_${FAMILY}_PATH}/Include")
+				if(SUBFAMILY_DEFINITIONS)
+					target_compile_definitions(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE ${SUBFAMILY_DEFINITIONS})
+				endif()
+			endif()
+
+			# Create type library
+			if(NOT (TARGET CMSIS::STM32::${TYPE}::${SUBFAMILY}))
+				message(TRACE "FindCMSIS: creating library CMSIS::STM32::${TYPE}${SUBFAMILY_C}")
+				add_library(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE IMPORTED)
+				target_link_libraries(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE CMSIS::STM32::${FAMILY}${SUBFAMILY_C})
+				target_compile_definitions(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE STM32${TYPE})
+			endif()
+		endforeach()
 	endforeach()
     list(REMOVE_DUPLICATES CMSIS_INCLUDE_DIRS)
 endforeach()

@@ -1,10 +1,3 @@
-set(STM32_F7_SUBFAMILIES
-	# Single-Precision FPU
-	SP
-	# Double-Precision FPU
-	DP
-)
-
 set(STM32_F7_SP_TYPES
 	# Value Lines
 	## STM32F7x0

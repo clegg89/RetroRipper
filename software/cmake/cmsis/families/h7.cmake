@@ -1,10 +1,3 @@
-set(STM32_H7_SUBFAMILIES
-	# All H7's have an M7
-	M7
-	# Dual-core variants also have an M4
-	M4
-)
-
 set(STM32_H7_SUBFAMILY_PREFIX "CORE_")
 
 # Note: The xxQ types below are not listed in the getting

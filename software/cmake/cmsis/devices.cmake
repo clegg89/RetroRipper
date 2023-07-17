@@ -1,15 +1,4 @@
-set(CMSIS_SUPPORTED_FAMILIES
-	# Mainstream
-	f0 g0 f1 f3 g4
-	# Ultra-low-power
-	l0 l4 l5 u5
-	# High Performance
-	f2 f4 f7 h7
-	# Wireless
-	wl wb
-)
-
-foreach(FAMILY ${CMSIS_SUPPORTED_FAMILIES})
+foreach(FAMILY ${STM32_SUPPORTED_FAMILIES})
 	find_file(FAMILY_INCLUDE
 		"${FAMILY}.cmake"
 		PATHS "${CMAKE_CURRENT_LIST_DIR}/families"
@@ -39,13 +28,18 @@ function(cmsis_stm32_get_type_subfamilies TYPE SUBFAMILIES)
 		message(FATAL_ERROR "Unkown TYPE pattern ${TYPE}")
 	endif()
 
-	foreach(C_SUBFAM ${STM32_${FAMILY}_SUBFAMILIES})
-	 	if(${TYPE} IN_LIST STM32_${FAMILY}_${C_SUBFAM}_TYPES)
-			list(APPEND RESULT_SUBFAMILIES ${C_SUBFAM})
-		endif()
-	endforeach()
+	stm32_get_family_subfamilies(${FAMILY} C_SUBFAMILIES)
 
-	if(RESULT_SUBFAMILIES)
+	if(${C_SUBFAMILIES} STREQUAL "")
+		set(${SUBFAMILIES} "" PARENT_SCOPE)
+	else()
+		set(RESULT_SUBFAMILIES "")
+		foreach(SUBFAMILY ${C_SUBFAMILIES})
+			if(${TYPE} IN_LIST STM32_${FAMILY}_${SUBFAMILY}_TYPES)
+				list(APPEND RESULT_SUBFAMILIES ${SUBFAMILY})
+			endif()
+		endforeach()
+
 		set(${SUBFAMILIES} ${RESULT_SUBFAMILIES} PARENT_SCOPE)
 	endif()
 endfunction()

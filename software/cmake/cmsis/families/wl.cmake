@@ -1,10 +1,3 @@
-set(STM32_WL_SUBFAMILIES
-	# All H7's have an M4
-	M4
-	# Dual-core variants also have an M0PLUS
-	M0PLUS
-)
-
 set(STM32_WL_SUBFAMILY_PREFIX "CORE_")
 
 set(STM32_WL_M4_TYPES 

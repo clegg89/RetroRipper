@@ -1,8 +1,3 @@
-set(STM32_WB_SUBFAMILIES
-	# The only subfamily we support is the M4
-	M4
-)
-
 set(STM32_WB_SUBFAMILY_PREFIX "CORE_")
 
 set(STM32_WB_M4_TYPES 

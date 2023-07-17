@@ -1,9 +1,7 @@
-_stm32_create_family_targets(FAMILY F1)
-
-target_compile_options(STM32::F1 INTERFACE
+set(STM32_F1_COMPILE_OPTIONS
     $<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m3>
 )
 
-target_link_options(STM32::F1 INTERFACE
+set(STM32_F1_LINK_OPTIONS
     $<$<C_COMPILER_ID:GNU>:-mcpu=cortex-m3>
 )
