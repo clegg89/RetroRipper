@@ -47,15 +47,13 @@ toolchain_add_asm_source(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolc
 toolchain_add_linker_script(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "STM32F103RBTx_FLASH")
 toolchain_add_map_file(${PROJECT_NAME})
 
-# TODO following is not toolchain independent
-
 # Print executable size
 add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD
-	COMMAND arm-none-eabi-size $<TARGET_FILE:${PROJECT_NAME}>)
+	COMMAND ${CMAKE_SIZE_UTIL} $<TARGET_FILE:${PROJECT_NAME}>)
 
 # Create hex file
 add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD
-	COMMAND arm-none-eabi-objcopy -O ihex $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.hex
-	COMMAND arm-none-eabi-objcopy -O binary $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.bin)
+	COMMAND ${TOOLCHAIN_HEX_COMMAND} $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.hex
+	COMMAND ${TOOLCHAIN_BIN_COMMAND} -O binary $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.bin)

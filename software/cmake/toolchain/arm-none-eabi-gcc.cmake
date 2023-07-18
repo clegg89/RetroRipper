@@ -34,6 +34,9 @@ set(CMAKE_EXECUTABLE_SUFFIX_C   .elf)
 set(CMAKE_EXECUTABLE_SUFFIX_CXX .elf)
 set(CMAKE_EXECUTABLE_SUFFIX_ASM .elf)
 
+set(TOOLCHAIN_HEX_COMMAND ${CMAKE_OBJCOPY} -O ihex)
+set(TOOLCHAIN_BIN_COMMAND ${CMAKE_OBJCOPY} -O binary)
+
 ## Add a linker script to a provided target, with the provided visibility
 #
 # SCRIPT_BASE The base name of the script, without the file extension
