@@ -1,11 +1,13 @@
 foreach(FAMILY ${STM32_SUPPORTED_FAMILIES})
-	find_file(FAMILY_INCLUDE
+	find_file(CMSIS_${FAMILY}_FAMILY_INCLUDE
 		"${FAMILY}.cmake"
 		PATHS "${CMAKE_CURRENT_LIST_DIR}/families"
-		NO_CMAKE_PATH
 		REQUIRED
+		NO_DEFAULT_PATH
+		NO_CMAKE_PATH
+		NO_CMAKE_FIND_ROOT_PATH
 	)
-	include("${FAMILY_INCLUDE}")
+	include("${CMSIS_${FAMILY}_FAMILY_INCLUDE}")
 endforeach()
 
 ## Given a family FAMILY, output the supported types in TYPES
@@ -30,8 +32,8 @@ function(cmsis_stm32_get_type_subfamilies TYPE SUBFAMILIES)
 
 	stm32_get_family_subfamilies(${FAMILY} C_SUBFAMILIES)
 
-	if(${C_SUBFAMILIES} STREQUAL "")
-		set(${SUBFAMILIES} "" PARENT_SCOPE)
+	if("${C_SUBFAMILIES}" STREQUAL "NONE")
+		set(${SUBFAMILIES} "NONE" PARENT_SCOPE)
 	else()
 		set(RESULT_SUBFAMILIES "")
 		foreach(SUBFAMILY ${C_SUBFAMILIES})
@@ -74,7 +76,7 @@ function(cmsis_stm32_get_device_type DEVICE TYPE)
 	endforeach()
 
 	if(NOT RESULT_TYPE)
-		message(FATAL_ERROR "Invalid/unsupported device: ${DEVICE}")
+		message(FATAL_ERROR "Invalid/unsupported DEVICE ${DEVICE}")
 	endif()
 
 	set(${TYPE} ${RESULT_TYPE} PARENT_SCOPE)

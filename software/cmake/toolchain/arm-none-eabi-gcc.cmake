@@ -46,8 +46,10 @@ function(toolchain_add_linker_script TARGET VISIBILITY SCRIPT_DIR SCRIPT_BASE)
 	find_file(SCRIPT
 		"${SCRIPT_BASE}.ld"
 		PATHS "${SCRIPT_DIR}/GCC"
-		NO_CMAKE_PATH
 		REQUIRED
+		NO_DEFAULT_PATH
+		NO_CMAKE_PATH
+		NO_CMAKE_FIND_ROOT_PATH
 	)
 
 	target_link_options(${TARGET} ${VISIBILITY}
@@ -80,14 +82,16 @@ function(toolchain_add_asm_source TARGET VISIBILITY SOURCE_DIR SOURCE_BASES)
 	get_filename_component(SOURCE_DIR "${SOURCE_DIR}" ABSOLUTE)
 
 	foreach(SOURCE_BASE ${SOURCE_BASES})
-		find_file(SOURCE
+		find_file(SOURCE_${SOURCE_BASE}
 			"${SOURCE_BASE}.s"
 			PATHS "${SOURCE_DIR}/GCC"
-			NO_CMAKE_PATH
 			REQUIRED
+			NO_DEFAULT_PATH
+			NO_CMAKE_PATH
+			NO_CMAKE_FIND_ROOT_PATH
 		)
 
-		list(APPEND SOURCES ${SOURCE})
+		list(APPEND SOURCES ${SOURCE_${SOURCE_BASE}})
 	endforeach()
 
 	target_sources(${TARGET} ${VISIBILITY} ${SOURCES})
@@ -96,7 +100,7 @@ endfunction()
 ## Generate a map file for the given target
 function(toolchain_add_map_file TARGET)
 	set(MAP_FILE_OUTPUT "$<TARGET_FILE_DIR:${TARGET}>/$<TARGET_FILE_BASE_NAME:${TARGET}>.map")
-	target_link_options(${TARGET} PRIVATE -Wl,-Map,${MAP_FILE_OUTPUT})
+	target_link_options(${TARGET} PRIVATE -Wl,-Map,${MAP_FILE_OUTPUT},--cref)
 endfunction()
 
 ## GCC does not have equivalent to IAR's log output

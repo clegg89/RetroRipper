@@ -82,9 +82,11 @@ message(STATUS "Search for CMSIS families: ${CMSIS_FIND_COMPONENTS}")
 # CMSIS::STM32::CORE target is always created/required
 # TODO: Versioning? use actual CMSIS_5 Core?
 find_path(CMSIS_CORE_PATH
-	NAMES Include/cmsis_gcc.h # Actual toolchain doesn't matter, we're just looking for the include path
-	PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32"
+	NAMES Include/cmsis_gcc.h
+	PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32/cmsis_core"
 	NO_DEFAULT_PATH
+	NO_CMAKE_PATH
+	NO_CMAKE_FIND_ROOT_PATH
 )
 if (NOT CMSIS_CORE_PATH)
 	if (CMSIS_FIND_REQUIRED)
@@ -92,7 +94,6 @@ if (NOT CMSIS_CORE_PATH)
 	endif()
 	# TODO: Handle other cases??
 endif()
-list(APPEND CMSIS_INCLUDE_DIRS "${CMSIS_CORE_PATH}/Include")
 
 if(NOT (TARGET CMSIS::STM32::CORE))
 	add_library(CMSIS::STM32::CORE INTERFACE IMPORTED)
@@ -101,12 +102,12 @@ endif()
 
 foreach(COMP ${CMSIS_FIND_COMPONENTS})
     string(TOLOWER ${COMP} COMP_L)
-    string(TOUPPER ${COMP} COMP)
+    string(TOUPPER ${COMP} COMP_U)
 
 	# REGEX to match possible STM32 components
 	# MATCH1 should always hit, and indicates the Family (i.e. F1, WB, MP1, etc.)
 	# MATCH2 is the full device info (i.e. 03RB), MATCH1 + MATCH2 are the full device: F103RB
-    string(REGEX MATCH "^STM32([FGHLMUW]P?[0-9BL])([0-9A-Z][0-9M][A-Z][0-9A-Z])?.*$" COMP ${COMP})
+    string(REGEX MATCH "^STM32([FGHLMUW]P?[0-9BL])([0-9A-Z][0-9M][A-Z][0-9A-Z])?.*$" COMP_U ${COMP_U})
     # CMAKE_MATCH_<n> contains n'th subexpression
     # CMAKE_MATCH_0 contains full match
 
@@ -127,25 +128,35 @@ foreach(COMP ${CMSIS_FIND_COMPONENTS})
         message(TRACE "FindCMSIS: family only match for COMP ${COMP}, STM_TYPES is ${STM_TYPES}")
     endif()
 
+	if(NOT STM_TYPES)
+		set(CMSIS_${COMP}_FOUND FALSE)
+		continue()
+	endif()
+
     string(TOLOWER ${FAMILY} FAMILY_L)
 
 	if (NOT CMSIS_${FAMILY}_PATH)
 		# Search for Include/stm32[XX]xx.h
 		find_path(CMSIS_${FAMILY}_PATH
 			NAMES Include/stm32${FAMILY_L}xx.h
-			PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32"
+			PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32/cmsis_device_${FAMILY_L}"
 			NO_DEFAULT_PATH
+			NO_CMAKE_PATH
+			NO_CMAKE_FIND_ROOT_PATH
 		)
 		if (NOT CMSIS_${FAMILY}_PATH)
 			message(VERBOSE "FindCMSIS: stm32${FAMILY_L}xx.h for ${FAMILY} has not been found")
+			set(CMSIS_${COMP}_FOUND FALSE)
 			continue()
 		endif()
 	endif()
 
+	set(CMSIS_${COMP}_FOUND TRUE)
+
 	foreach(TYPE ${STM_TYPES})
 		cmsis_stm32_get_type_subfamilies(${TYPE} SUBFAMILIES)
 		foreach(SUBFAMILY ${SUBFAMILIES})
-			if(${SUBFAMILY} STREQUAL "")
+			if("${SUBFAMILY}" STREQUAL "NONE")
 				set(SUBFAMILY_C "")
 			else()
 			 	string(TOUPPER ${SUBFMAILY} SUBFAMILY)
@@ -155,8 +166,8 @@ foreach(COMP ${CMSIS_FIND_COMPONENTS})
 			endif()
 
 			# Create family library if it does not already exist
-			if(NOT (TARGET CMSIS::STM32::${FAMILY})${SUBFAMILY_C})
-				message(TRACE "FindCMSIS: creating library CMSIS::STM32::${FAMILY}${SUBFAMILY_C}")
+			if(NOT (TARGET CMSIS::STM32::${FAMILY}${SUBFAMILY_C}))
+				message(STATUS "FindCMSIS: creating library CMSIS::STM32::${FAMILY}${SUBFAMILY_C}")
 				add_library(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE IMPORTED)
 				target_link_libraries(CMSIS::STM32::${FAMILY}${SUBFAMILY_C} INTERFACE
 					STM32::${FAMILY}${SUBFAMILY_C}
@@ -169,18 +180,16 @@ foreach(COMP ${CMSIS_FIND_COMPONENTS})
 
 			# Create type library
 			if(NOT (TARGET CMSIS::STM32::${TYPE}::${SUBFAMILY}))
-				message(TRACE "FindCMSIS: creating library CMSIS::STM32::${TYPE}${SUBFAMILY_C}")
+				message(STATUS "FindCMSIS: creating library CMSIS::STM32::${TYPE}${SUBFAMILY_C}")
 				add_library(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE IMPORTED)
 				target_link_libraries(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE CMSIS::STM32::${FAMILY}${SUBFAMILY_C})
 				target_compile_definitions(CMSIS::STM32::${TYPE}${SUBFAMILY_C} INTERFACE STM32${TYPE})
 			endif()
 		endforeach()
 	endforeach()
-    list(REMOVE_DUPLICATES CMSIS_INCLUDE_DIRS)
 endforeach()
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(CMSIS
-    REQUIRED_VARS CMSIS_INCLUDE_DIRS
     HANDLE_COMPONENTS
 )

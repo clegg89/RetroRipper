@@ -1,88 +1,63 @@
 cmake_minimum_required(VERSION 3.15.3)
 
-project(RetroRipper)
+set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/../../cmake/toolchain/arm-none-eabi-gcc.cmake)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
 
-enable_language(CXX C ASM)
-#set(CMAKE_C_STANDARD 99)
-#set(CMAKE_C_STANDARD_REQUIRED ON)
-#set(CMAKE_C_EXTENSIONS OFF)
+project(RetroRipper C CXX ASM)
 
-include(hal)
-include(ripper)
-include(apps)
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
-set(STM32CUBEMX_GENERATED_FILES
-	# HAL
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_gpio.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_dma.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_pwr.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_flash_ex.c
-	Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_exti.c
+find_package(STM32 REQUIRED STM32F1)
+find_package(CMSIS REQUIRED STM32F103RB)
+find_package(HAL REQUIRED STM32F1)
 
+cmsis_stm32_get_device_type("F103RB" DEVICE_TYPE)
+
+set(SOURCES
 	# Core
-	Src/main.c
-	Src/stm32f1xx_it.c
-	Src/stm32f1xx_hal_msp.c
-	Src/system_stm32f1xx.c  
+	src/main.cpp
+	src/stm32f1xx_it.c
+	src/stm32f1xx_hal_msp.c
+	src/system_stm32f1xx.c  
 
 	# Startup
-	startup_stm32f103xb.s
+	# startup_stm32f103xb.s
 )
 
-set(EXECUTABLE ${PROJECT_NAME}.out)
+set(EXECUTABLE ${PROJECT_NAME})
 
-add_executable(${EXECUTABLE} ${STM32CUBEMX_GENERATED_FILES})
+add_executable(${EXECUTABLE} ${SOURCES})
 
-target_compile_definitions(${EXECUTABLE} PRIVATE
-	-DUSE_HAL_DRIVER
-	-DSTM32F103xB)
+target_include_directories(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
+target_link_libraries(${EXECUTABLE} PUBLIC
+	HAL::STM32::F1::GPIOEx
+	HAL::STM32::F1::TIMEx
+	HAL::STM32::F1::UART
+	HAL::STM32::F1::RCCEx
+	HAL::STM32::F1::DMA
+	HAL::STM32::F1::CORTEX
+	HAL::STM32::F1::PWR
+	HAL::STM32::F1::FLASHEx
+	HAL::STM32::F1::EXTI
+	STM32::Nano
+	CMSIS::STM32::${DEVICE_TYPE}
+)
 
-target_include_directories(${EXECUTABLE} PRIVATE
-	Inc
-	Drivers/STM32F1xx_HAL_Driver/Inc
-	Drivers/STM32F1xx_HAL_Driver/Inc/Legacy
-	Drivers/CMSIS/Device/ST/STM32F1xx/Include
-	Drivers/CMSIS/Include)
+toolchain_add_asm_source(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "startup_stm32f103xb")
+toolchain_add_linker_script(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "STM32F103RBTx_FLASH")
+toolchain_add_map_file(${EXECUTABLE})
 
-target_compile_options(${EXECUTABLE} PRIVATE
-	-mcpu=cortex-m3
-	-mthumb
-	-Wall
-	-fdata-sections
-	-ffunction-sections
-	# Look up cmake generator expressions
-	# Basically says "If we're in debug config, use -Og flag"
-	$<$<CONFIG:Debug>:-Og>)
-
-target_link_options(${EXECUTABLE} PRIVATE
-	-T${CMAKE_SOURCE_DIR}/STM32F103RBTx_FLASH.ld
-	-mcpu=cortex-m3
-	-mthumb
-	-specs=nano.specs
-	-lc
-	-lm
-	# https://community.st.com/s/question/0D53W00001vno1oSAA/warning-elffile-has-a-load-segment-with-rwx-permissions
-	-Wl,--no-warn-rwx-segment
-	-Wl,-Map=${PROJECT_NAME}.map,--cref
-	-Wl,--gc-sections)
+# TODO following is not toolchain independent
 
 # Print executable size
 add_custom_command(TARGET ${EXECUTABLE}
 	POST_BUILD
-	# TODO toolchain independent
-	COMMAND arm-none-eabi-size ${EXECUTABLE})
+	COMMAND arm-none-eabi-size ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C})
 
 # Create hex file
 add_custom_command(TARGET ${EXECUTABLE}
 	POST_BUILD
-	COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE} ${PROJECT_NAME}.hex
-	COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE} ${PROJECT_NAME}.bin)
+	COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C} ${PROJECT_NAME}.hex
+	COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C} ${PROJECT_NAME}.bin)

@@ -83,21 +83,25 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 		message(FATAL_ERROR "FindHAL: Unrecognized component patter ${COMP}")
 	endif()
 
-	if(NOT (${FAMILY} IN_LIST STM32_SUPPORTED_FAMILIES))
+	if(NOT (${FAMILY_L} IN_LIST STM32_SUPPORTED_FAMILIES))
 		message(FATAL_ERROR "Invalid/unsupported STM32 FAMILY ${COMP}")
 	endif()
 
 	find_path(HAL_${FAMILY}_PATH
 		NAMES Inc/stm32${FAMILY_L}xx_hal.h
-		PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32"
+		PATHS "${CMAKE_CURRENT_LIST_DIR}/../submodules/stm32/stm32${FAMILY_L}xx_hal_driver"
 		REQUIRED
 		NO_DEFAULT_PATH
+		NO_CMAKE_PATH
+		NO_CMAKE_FIND_ROOT_PATH
 		)
 
 	find_file(HAL_${FAMILY}_SOURCE
 		NAMES stm32${FAMILY_L}xx_hal.c
 		PATHS "${HAL_${FAMILY}_PATH}/Src"
 		NO_DEFAULT_PATH
+		NO_CMAKE_PATH
+		NO_CMAKE_FIND_ROOT_PATH
 	)
 
 	if (NOT HAL_${FAMILY}_PATH OR NOT HAL_${FAMILY}_SOURCE)
@@ -116,7 +120,7 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 	stm32_get_family_subfamilies(${FAMILY} SUBFAMILIES)
 
 	foreach(SUBFAMILY ${SUBFAMILIES})
-		if(${SUBFAMILY} STREQUAL "")
+		if("${SUBFAMILY}" STREQUAL "NONE")
 			set(SUBFAMILY_C "")
 		else()
 			string(TOUPPER ${SUBFAMILY} SUBFAMILY)
@@ -139,12 +143,13 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 				NAMES stm32${FAMILY_L}xx_hal_${DRIVER_L}.c
 				PATHS "${HAL_${FAMILY}_PATH}/Src"
 				NO_DEFAULT_PATH
+				NO_CMAKE_PATH
+				NO_CMAKE_FIND_ROOT_PATH
 			)
 			if(NOT HAL_${FAMILY}_${DRIVER}_SOURCE)
 				message(WARNING "Cannot find ${DRIVER} driver for ${FAMILY}")
 				continue()
 			endif()
-			list(APPEND HAL_${FAMILY}_SOURCES "${HAL_${FAMILY}_${DRIVER}_SOURCE}")
 
 			if(NOT (TARGET HAL::STM32::${FAMILY}${SUBFAMILY_C}::${DRIVER}))
 				message(TRACE "FindHAL: creating library HAL::STM32::${FAMILY}${SUBFAMILY_C}::${DRIVER}")
@@ -160,12 +165,13 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 					NAMES stm32${FAMILY_L}xx_hal_${DRIVER_L}_ex.c
 					PATHS "${HAL_${FAMILY}_PATH}/Src"
 					NO_DEFAULT_PATH
+					NO_CMAKE_PATH
+					NO_CMAKE_FIND_ROOT_PATH
 				)
 				if(NOT HAL_${FAMILY}_${DRIVER}_EX_SOURCE)
 					message(WARNING "Cannot find ${DRIVER}Ex driver for ${FAMILY}")
 					continue()
 				endif()
-				list(APPEND HAL_${FAMILY}_SOURCES "${HAL_${FAMILY}_${DRIVER}_EX_SOURCE}")
 							
 				if(NOT (TARGET HAL::STM32::${FAMILY}${SUBFAMILY_C}::${DRIVER}Ex))
 					message(TRACE "FindHAL: creating library HAL::STM32::${FAMILY}${SUBFAMILY_C}::${DRIVER}Ex")
@@ -185,12 +191,13 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 				NAMES stm32${FAMILY_L}xx_ll_${DRIVER_L}.c
 				PATHS "${HAL_${FAMILY}_PATH}/Src"
 				NO_DEFAULT_PATH
+				NO_CMAKE_PATH
+				NO_CMAKE_FIND_ROOT_PATH
 			)
 			if(NOT HAL_${FAMILY}_${DRIVER}_LL_SOURCE)
 				message(WARNING "Cannot find LL_${DRIVER} driver for ${FAMILY}")
 				continue()
 			endif()
-			list(APPEND HAL_${FAMILY}_SOURCES "${HAL_${FAMILY}_${DRIVER}_LL_SOURCE}")
 
 			if(NOT (TARGET HAL::STM32::${FAMILY}${SUBFAMILY_C}::LL_${DRIVER}))
 				message(TRACE "FindHAL: creating library HAL::STM32::${FAMILY}${SUBFAMILY_C}::LL_${DRIVER}")
@@ -201,16 +208,9 @@ foreach(COMP ${HAL_FIND_COMPONENTS})
 			endif()
 		endforeach()
 	endforeach()
-
-	list(APPEND HAL_INCLUDE_DIRS "${HAL_${FAMILY}_INCLUDE}")
-	list(APPEND HAL_SOURCES "${HAL_${FAMILY}_SOURCES}")
 endforeach()
-
-list(REMOVE_DUPLICATES HAL_INCLUDE_DIRS)
-list(REMOVE_DUPLICATES HAL_SOURCES)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(HAL
-	REQUIRED_VARS HAL_INCLUDE_DIRS HAL_SOURCES
 	HANDLE_COMPONENTS
 )

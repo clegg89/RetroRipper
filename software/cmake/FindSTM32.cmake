@@ -48,13 +48,13 @@ foreach(COMP ${STM32_FIND_COMPONENTS})
 	string(REGEX MATCH "^STM32([FGHLMUW]P?[0-9BL]).*$" COMP_U ${COMP_U})
 
 	if(CMAKE_MATCH_1)
-		set(FAMILY_U ${CMAKE_MATCH_1})
-		string(TOLOWER ${FAMILY_U} FAMILY)
+		set(FAMILY ${CMAKE_MATCH_1})
+		string(TOLOWER ${FAMILY} FAMILY_L)
 	else()
 		message(FATAL_ERROR "FindSTM32: Unrecognized component pattern ${COMP}")
 	endif()
 
-	if(NOT (${FAMILY} IN_LIST STM32_SUPPORTED_FAMILIES))
+	if(NOT (${FAMILY_L} IN_LIST STM32_SUPPORTED_FAMILIES))
 		message(FATAL_ERROR "Invalid/unsupported STM32 FAMILY ${COMP}")
 	endif()
 
@@ -63,7 +63,7 @@ foreach(COMP ${STM32_FIND_COMPONENTS})
 	stm32_get_family_subfamilies(${FAMILY} SUBFAMILIES)
 
 	foreach(SUBFAMILY ${SUBFAMILIES})
-		if(${SUBFAMILY} STREQUAL "")
+		if("${SUBFAMILY}" STREQUAL "NONE")
 			set(SUBFAMILY "")
 			set(SUBFAMILY_C "")
 			set(SUBFAMILY_U "")
@@ -83,13 +83,19 @@ foreach(COMP ${STM32_FIND_COMPONENTS})
 				$<$<C_COMPILER_ID:GNU>:-ffunction-sections>
 				$<$<C_COMPILER_ID:GNU>:-fdata-sections>
 				$<$<AND:$<C_COMPILER_ID:GNU>,$<CONFIG:Debug>>:-g>
+				$<$<AND:$<C_COMPILER_ID:GNU>,$<CONFIG:Debug>>:-Og>
+				$<$<AND:$<C_COMPILER_ID:GNU>,$<CONFIG:Release>>:-O3>
+				$<$<AND:$<C_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-fno-rtti>
+				$<$<AND:$<C_COMPILER_ID:GNU>,$<COMPILE_LANGUAGE:CXX>>:-fno-exceptions>
 				${STM32_${FAMILY}${SUBFAMILY_U}_COMPILE_OPTIONS}
 			)
 
 			#=== Set linker flags ===
 			target_link_options(STM32::${FAMILY}${SUBFAMILY_C} INTERFACE
 				$<$<C_COMPILER_ID:GNU>:-mthumb>
-				$<$<C_COMPILER_ID:GNU>:--Wl,--gc-sections>
+				$<$<C_COMPILER_ID:GNU>:-Wl,--gc-sections>
+				# https://community.st.com/s/question/0D53W00001vno1oSAA/warning-elffile-has-a-load-segment-with-rwx-permissions
+				$<$<C_COMPILER_ID:GNU>:-Wl,--no-warn-rwx-segment>
 				${STM32_${FAMILY}${SUBFAMILY_U}_LINK_OPTIONS}
 			)
 
@@ -103,14 +109,14 @@ endforeach()
 
 if(NOT (TARGET STM32::NoSys))
     add_library(STM32::NoSys INTERFACE IMPORTED)
-    target_compile_options(STM32::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nosys.specs>)
-    target_link_options(STM32::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nosys.specs>)
+    target_compile_options(STM32::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:-specs=nosys.specs>)
+    target_link_options(STM32::NoSys INTERFACE $<$<C_COMPILER_ID:GNU>:-specs=nosys.specs>)
 endif()
 
 if(NOT (TARGET STM32::Nano))
     add_library(STM32::Nano INTERFACE IMPORTED)
-    target_compile_options(STM32::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nano.specs>)
-    target_link_options(STM32::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:--specs=nano.specs>)
+    target_compile_options(STM32::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:-specs=nano.specs>)
+    target_link_options(STM32::Nano INTERFACE $<$<C_COMPILER_ID:GNU>:-specs=nano.specs>)
 endif()
 
 if(NOT (TARGET STM32::Nano::FloatPrint))
