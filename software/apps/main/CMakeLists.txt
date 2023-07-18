@@ -26,12 +26,10 @@ set(SOURCES
 	# startup_stm32f103xb.s
 )
 
-set(EXECUTABLE ${PROJECT_NAME})
+add_executable(${PROJECT_NAME} ${SOURCES})
 
-add_executable(${EXECUTABLE} ${SOURCES})
-
-target_include_directories(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
-target_link_libraries(${EXECUTABLE} PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
+target_link_libraries(${PROJECT_NAME} PUBLIC
 	HAL::STM32::F1::GPIOEx
 	HAL::STM32::F1::TIMEx
 	HAL::STM32::F1::UART
@@ -45,19 +43,19 @@ target_link_libraries(${EXECUTABLE} PUBLIC
 	CMSIS::STM32::${DEVICE_TYPE}
 )
 
-toolchain_add_asm_source(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "startup_stm32f103xb")
-toolchain_add_linker_script(${EXECUTABLE} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "STM32F103RBTx_FLASH")
-toolchain_add_map_file(${EXECUTABLE})
+toolchain_add_asm_source(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "startup_stm32f103xb")
+toolchain_add_linker_script(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "STM32F103RBTx_FLASH")
+toolchain_add_map_file(${PROJECT_NAME})
 
 # TODO following is not toolchain independent
 
 # Print executable size
-add_custom_command(TARGET ${EXECUTABLE}
+add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD
-	COMMAND arm-none-eabi-size ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C})
+	COMMAND arm-none-eabi-size $<TARGET_FILE:${PROJECT_NAME}>)
 
 # Create hex file
-add_custom_command(TARGET ${EXECUTABLE}
+add_custom_command(TARGET ${PROJECT_NAME}
 	POST_BUILD
-	COMMAND arm-none-eabi-objcopy -O ihex ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C} ${PROJECT_NAME}.hex
-	COMMAND arm-none-eabi-objcopy -O binary ${EXECUTABLE}${CMAKE_EXECUTABLE_SUFFIX_C} ${PROJECT_NAME}.bin)
+	COMMAND arm-none-eabi-objcopy -O ihex $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.hex
+	COMMAND arm-none-eabi-objcopy -O binary $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.bin)
