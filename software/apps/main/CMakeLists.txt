@@ -5,8 +5,6 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../../cmake)
 
 project(RetroRipper C CXX ASM)
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 find_package(STM32 REQUIRED STM32F1)
@@ -16,17 +14,15 @@ find_package(HAL REQUIRED STM32F1)
 cmsis_stm32_get_device_type("F103RB" DEVICE_TYPE)
 
 set(SOURCES
-	# Core
 	src/main.cpp
 	src/stm32f1xx_it.c
 	src/stm32f1xx_hal_msp.c
 	src/system_stm32f1xx.c  
-
-	# Startup
-	# startup_stm32f103xb.s
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+target_compile_features(${PROJECT_NAME} PUBLIC c_std_99 cxx_std_20)
 
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/include")
 target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -46,6 +42,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 toolchain_add_asm_source(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "startup_stm32f103xb")
 toolchain_add_linker_script(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_LIST_DIR}/toolchain" "STM32F103RBTx_FLASH")
 toolchain_add_map_file(${PROJECT_NAME})
+toolchain_add_linker_log_output(${PROJECT_NAME})
 
 # Print executable size
 add_custom_command(TARGET ${PROJECT_NAME}
