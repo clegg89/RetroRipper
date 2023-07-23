@@ -25,6 +25,9 @@ foreach(FAMILY ${STM32_SUPPORTED_FAMILIES})
 	include("${STM32_${FAMILY}_FAMILY_INCLUDE}")
 endforeach()
 
+## For a given family provide a list of subfamilies, if it exists
+#
+# If a family has no subfamilies the result will be set to NONE
 function(stm32_get_family_subfamilies FAMILY SUBFAMILIES)
 	string(TOUPPER ${FAMILY} FAMILY)
 
